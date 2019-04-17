@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?><!--xmlns is called namespace and is something like import-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/countTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/button"
+        android:layout_centerHorizontal="true"
+        android:text="0"
+        android:textSize="32sp" />
+
+    <Button
+        android:id="@+id/button"       android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="increaseCount"
+        android:text="Count" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Decrease"
+        android:onClick="decreaseCount"/>
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Reset"
+        android:onClick="reset"/>
+
+</LinearLayout>
