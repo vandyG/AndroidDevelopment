@@ -20,14 +20,23 @@ class MainActivity : AppCompatActivity() {
 
         val client = OkHttpClient.Builder().build()
 
-        val category = etCategory.text
 
-        val url = "$baseUrl?country=in&category=$category&apiKey=$apiKey"
 
-        Log.e("TAG", url)
+//        newCallToClient(client, request)
 
-        val request = Request.Builder().url(url).build()
+        btnSearch.setOnClickListener{
+            val category = etCategory.text
 
+            val url = "$baseUrl?country=${category}&apiKey=$apiKey"
+            Log.e("TAG", url)
+
+            val request = Request.Builder().url(url).build()
+
+            newCallToClient(client, request)
+        }
+    }
+
+    private fun newCallToClient(client: OkHttpClient, request: Request) {
         client.newCall(request).enqueue(object : Callback{
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
