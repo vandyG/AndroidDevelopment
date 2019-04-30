@@ -20,9 +20,11 @@ import kotlinx.android.synthetic.main.dialog_view.view.*
 import kotlinx.android.synthetic.main.item_row.*
 import kotlinx.android.synthetic.main.login_dialog.view.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), ChildEventListener {
 
-    val firebaseAuth = FirebaseAuth.getInstance()
+    private var firebaseAuth = FirebaseAuth.getInstance()
+
+    private lateinit var adapter: NoteAdapter
 
     private val notes = arrayListOf<Note>()
 
@@ -36,17 +38,19 @@ class MainActivity : AppCompatActivity() {
 
     private val db = FirebaseDatabase.getInstance().reference
 
+
     private val noteAlert by lazy {
         AlertDialog.Builder(this).setView(noteDialogView).setTitle("New Note").setCancelable(false)
             .setPositiveButton("Done") { dialog, _ ->
                 val note = Note(
-                    System.currentTimeMillis().toString(), noteDialogView.etTitle.text.toString(),
+                    System.currentTimeMillis().toString(),
+                    noteDialogView.etTitle.text.toString(),
                     noteDialogView.etNote.text.toString()
                 )
-
                 //code to update database
+                //Log.e("DB", db.key)
                 db.child(firebaseAuth.currentUser?.uid.toString()).child(note.time).setValue(note)
-
+                Log.e("NOTE", note.title)
                 dialog.dismiss()
             }
             .setNegativeButton("Cancel") { dialog, _ ->
@@ -113,9 +117,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
-
-        val adapter = NoteAdapter(notes)
+        adapter = NoteAdapter(notes)
 
         rvNotes.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         rvNotes.adapter = adapter
@@ -136,46 +138,41 @@ class MainActivity : AppCompatActivity() {
             noteAlert.show()
         }
 
-        db.addChildEventListener(object : ChildEventListener {
-            override fun onCancelled(p0: DatabaseError) {
-                p0.toException().printStackTrace()
-            }
+        firebaseUser?.let {
 
-            override fun onChildMoved(p0: DataSnapshot, p1: String?) {
+            //Attach listener to UID
+            db.child(firebaseUser.uid).addChildEventListener(this)
 
-            }
+        }
 
-            override fun onChildChanged(p0: DataSnapshot, p1: String?) {
-                fetchData(p0, p1)
-            }
+    }
 
-            fun fetch(p0: DataSnapshot) {
-                p0.children.forEach {
-                    val note = it.getValue(Note::class.java)
-                    notes.add(note!!)
-                    adapter.notifyDataSetChanged()
-                }
-            }
+    override fun onCancelled(p0: DatabaseError) {
+        p0.toException().printStackTrace()
+    }
 
-            fun fetchData(p0: DataSnapshot, p1: String?) {
-                firebaseUser?.let {
-                    if (p1.equals(firebaseUser?.uid)) {
-                        fetch(p0)
-                    }
-                } ?: run {
-                    fetch(p0)
-                }
-            }
+    override fun onChildMoved(p0: DataSnapshot, p1: String?) {
 
-            override fun onChildAdded(p0: DataSnapshot, p1: String?) {
-                fetchData(p0,p1)
-            }
+    }
 
-            override fun onChildRemoved(p0: DataSnapshot) {
+    override fun onChildChanged(p0: DataSnapshot, p1: String?) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
-            }
+    override fun onChildAdded(p0: DataSnapshot, p1: String?) {
+        val note = p0.getValue(Note::class.java)
+        note?.let {
+            notes.add(note)
+        }
+        adapter.notifyDataSetChanged()
+    }
 
-        })
+    override fun onChildRemoved(p0: DataSnapshot) {
+        val note = p0.getValue(Note::class.java)
+        note?.let {
+            notes.remove(note)
+        }
+        adapter.notifyDataSetChanged()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
